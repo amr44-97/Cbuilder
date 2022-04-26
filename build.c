@@ -10,28 +10,33 @@
 #include <dirent.h>
 #include <strings.h>
 
+
 static void usage(char * prog_name){
-    fprintf(stderr, " <usage> : %s   <Options>\n\n",prog_name); 
+    fprintf(stderr, " <usage> : %s   <Options>  <flags> \n\n",prog_name);
     Println("Options:");
     Println("--new <project_name>"ANSI_COLOR_GREEN"      create new project\n"ANSI_COLOR_RESET );
     Println("--run <project_name>"ANSI_COLOR_GREEN"      run the executable in project\n\n"ANSI_COLOR_RESET);
+    Println("flags:");
+    Println("--c <project_name>"ANSI_COLOR_GREEN"        C project\n"ANSI_COLOR_RESET);
+    Println("--cpp <project_name>"ANSI_COLOR_GREEN"      C++ project\n"ANSI_COLOR_RESET);
+    Println("--debug <project_name>"ANSI_COLOR_GREEN"    make with -g \n"ANSI_COLOR_RESET);
 }
 
 
 
-static void copy_files_obj( char* prog_name ){
+static void copy_files_obj(char* prog_name,int flag){
  
     if(prog_name == NULL){
         fprintf(stderr,ANSI_COLOR_MAGENTA "[ERROR]: no project_name passed\n" ANSI_COLOR_RESET);
         exit(EXIT_FAILURE);
     }
 
-
+    file Lh,fh,ff,fL;
     const String pc = StringBuild(prog_name);
-
-
-    file Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.o");
-    file fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.o");
+    
+    if(flag == 0){
+     Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.o");
+     fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.o");
     
     const String file_handle_dest = StringBuild("/dep/file_handle.o");
     const String LibStr_dest = StringBuild("/dep/LibStr.o");
@@ -39,13 +44,34 @@ static void copy_files_obj( char* prog_name ){
     String path_f = Str_cat(pc, file_handle_dest.str); 
     String path_L = Str_cat(pc, LibStr_dest.str);
 
-    file ff = open_file(path_f.str, "wb+");
-    file fL = open_file(path_L.str, "wb+");
+     ff = open_file(path_f.str, "wb+");
+     fL = open_file(path_L.str, "wb+");
+
+    fwrite(Lh.buf.str, 1, Lh.buf.length-1, fL.ptr);
+    fwrite(fh.buf.str, 1, fh.buf.length-1, ff.ptr);
+
+    }else if (flag == 1){
+     Lh = read_file_to_string("/home/amr/AM/LibStr/cpp/LibStr.o");
+     fh = read_file_to_string("/home/amr/AM/LibStr/cpp/file_handle.o");
+    
+    const String file_handle_dest = StringBuild("/dep/file_handle.o");
+    const String LibStr_dest = StringBuild("/dep/LibStr.o");
+    
+    String path_f = Str_cat(pc, file_handle_dest.str); 
+    String path_L = Str_cat(pc, LibStr_dest.str);
+
+     ff = open_file(path_f.str, "wb+");
+     fL = open_file(path_L.str, "wb+");
 
     fwrite(Lh.buf.str, 1, Lh.buf.length-1, fL.ptr);
     fwrite(fh.buf.str, 1, fh.buf.length-1, ff.ptr);
 
 
+
+
+    }
+
+    
 
     close_file(ff);
     close_file(fL);
@@ -113,7 +139,7 @@ printf(ANSI_COLOR_GREEN "Created new progect <%s>\n"ANSI_COLOR_RESET,prog_name);
 }
 
 
-void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
+static void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
     String pname = StringBuild(prog_name);
 
     String mk_f =  Str_cat(pname,"/src/Makefile");
@@ -147,11 +173,16 @@ void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
     Str_cat_m(&mf,CCmop.str);
     Str_cat_m(&mf,CFLAGS.str);
     Str_cat_m(&mf,all.str);
-    Str_cat_m(&mf,"\n    ");
+    Str_cat_m(&mf,"\n\t");
     Str_cat_m(&mf,"${CC} ${CFLAGS} -o ");
     Str_cat_m(&mf,pname.str);
     Str_cat_m(&mf," ");
     Str_cat_m(&mf,pname_c.str);
+    Str_cat_m(&mf,"\n\t");
+    Str_cat_m(&mf,"mv ");
+    Str_cat_m(&mf,pname.str);
+    Str_cat_m(&mf," ../bin/");
+
 
      fwrite(mf.str,1,mf.length-1, fp.ptr);
 
@@ -175,11 +206,15 @@ void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
     Str_cat_m(&mf,CCmop.str);
     Str_cat_m(&mf,CFLAGS.str);
     Str_cat_m(&mf,all.str);
-    Str_cat_m(&mf,"\n    ");
+    Str_cat_m(&mf,"\n\t");
     Str_cat_m(&mf,"${CC} ${CFLAGS} -o ");
     Str_cat_m(&mf,pname.str);
     Str_cat_m(&mf," ");
     Str_cat_m(&mf,pname_c.str);
+    Str_cat_m(&mf,"\n\t");
+    Str_cat_m(&mf,"mv ");
+    Str_cat_m(&mf,pname.str);
+    Str_cat_m(&mf," ../bin/");
 
      fwrite(mf.str,1,mf.length-1, fp.ptr);
 
@@ -206,6 +241,65 @@ void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
  * 
  *
  * */
+
+
+static void prep_src(char *prog_name, int flag){
+
+    String pname =  StringBuild(prog_name);
+
+    String src = Str_cat(pname,"/src/");
+    Str_cat_m(&src,prog_name);
+    String head = Str_cat(pname,"/src/");
+    Str_cat_m(&head,prog_name);
+    if(flag == 0){
+    Str_cat_m(&src,".c");
+    }else if(flag == 1){
+    Str_cat_m(&src,".cpp");
+    }
+    
+    Str_cat_m(&head,".h");
+    String src_cnt;
+    if(flag == 0){
+     src_cnt = StringBuild("#include \"/home/amr/AM/LibStr/c/LibStr.h\"\
+\n#include \"/home/amr/AM/LibStr/c/file_handle.h\"\
+\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main(){\n\tprintf(\"Hello,World!\\n\");\n}");
+    }else if(flag == 1){
+     src_cnt = StringBuild("#include \"/home/amr/AM/LibStr/cpp/LibStr.hpp\"\
+\n#include \"/home/amr/AM/LibStr/cpp/file_handle.h\"\
+\n#include <stdio.h>\n#include <stdlib.h>\n#include <string>\n\nint main(){\n\tprintf(\"Hello,World!\\n\");\n}");
+      
+    }
+
+
+    String head_h = StringBuild("__");
+    Str_cat_m(&head_h,prog_name);
+    Str_cat_m(&head_h,"__");
+    Str_cat_m(&head_h,"H");
+    Str_cat_m(&head_h,"__\n");
+    String if_nf = StringBuild("#ifndef ");
+    String if_df = StringBuild("#define ");
+    String if_edf = StringBuild("#endif ");
+    
+    String hhh = StringBuild("");
+    Str_cat_m(&hhh, if_nf.str) ;
+    Str_cat_m(&hhh, head_h.str) ;
+    Str_cat_m(&hhh, if_df.str) ;
+    Str_cat_m(&hhh,head_h.str) ;
+    Str_cat_m(&hhh,"\n\n\n\n") ;
+    Str_cat_m(&hhh,if_edf.str) ;
+
+
+    file fo = open_file(src.str, "w+");
+    file fh = open_file(head.str, "w+");
+    fwrite(src_cnt.str,1,src_cnt.length-1, fo.ptr);
+    fwrite(hhh.str,1,hhh.length-1, fh.ptr);
+
+    close_file(fo);
+    close_file(fh);
+    
+    atexit(Str_free_all);
+}
+
 
 
 static void run_proj(char *prog_name){
@@ -273,7 +367,6 @@ int main(int argc, char** argv){
 
     }
 
-  
 
 
     if(argc < 2){
@@ -296,14 +389,22 @@ int main(int argc, char** argv){
     if(new_argv1 == 0){
         
         mkproj(argv[2]);
-        copy_files_obj(argv[2]);
-        
-        if(ftype_c == 0 ){
+        if(ftype_c ==0){
+            copy_files_obj(argv[2],0);
+            prep_src(argv[2], 0);
+        }else {
+            copy_files_obj(argv[2],1);
+            prep_src(argv[2], 1);
+        }
+
+         if(ftype_c == 0 ){
             if(debug_flag == 0){
                     prep_mkfile(argv[2],0,1);
             }else{
                     prep_mkfile(argv[2],0,0);
             }
+
+        
         }else if(ftype_cpp == 0 ){
             if(debug_flag == 0){
                     prep_mkfile(argv[2],1,1);

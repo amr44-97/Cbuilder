@@ -7,7 +7,6 @@
 #include <dirent.h>
 #include <iostream>
 #include <string>
-#include <vector>
 
 static void usage(char * prog_name){
     std::cerr << " <usage> :  " << prog_name << "[Options]\n\n"; 
@@ -29,8 +28,8 @@ static void copy_files_obj( char* prog_name ){
     const std::string pc = prog_name;
 
 
-    std::string Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.o");
-    std::string fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.o");
+    file Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.o");
+    file fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.o");
     
 
     const std::string file_handle_dest = "/dep/file_handle.o";
@@ -44,8 +43,8 @@ static void copy_files_obj( char* prog_name ){
     
     file fL = open_file(path_L.c_str(), "wb+");
 
-    fwrite(Lh.c_str(), 1, Lh.length()-1, fL.ptr);
-    fwrite(fh.c_str(), 1, fh.length()-1, ff.ptr);
+    fwrite(Lh.buf.str, 1, Lh.size-1, fL.ptr);
+    fwrite(fh.buf.str, 1, fh.size-1, ff.ptr);
 
 
     close_file(ff);
@@ -82,8 +81,8 @@ static void mkproj(char * prog_name){
     
 
 
-    std::string Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.h");
-    std::string fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.h");
+    file Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.h");
+    file fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.h");
     
     const std::string file_handle_dest = "/include/file_handle.h";
     const std::string LibStr_dest = "/include/LibStr.h";
@@ -94,8 +93,8 @@ static void mkproj(char * prog_name){
     file ff = open_file(path_f.c_str(), "wb+");
     file fL = open_file(path_L.c_str(), "wb+");
 
-    fwrite(Lh.c_str(), 1, Lh.length()-1, fL.ptr);
-    fwrite(fh.c_str(), 1, fh.length()-1, ff.ptr);
+    fwrite(Lh.buf.str, 1, Lh.size-1, fL.ptr);
+    fwrite(fh.buf.str, 1, fh.size-1, ff.ptr);
  
 
 std::cout << ANSI_COLOR_GREEN "Created new progect <" << prog_name << ">\n" ANSI_COLOR_RESET;

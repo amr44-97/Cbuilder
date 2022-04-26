@@ -3,7 +3,7 @@ CXX = g++
 
 CFLAGS = -Wall -Wextra -pedantic -g  -std=gnu11
 CXXFLAGS = -Wall -Wextra -pedantic -g  -std=gnu++11
-BINS =  cbuild  cppbuild 
+BINS =  cbuild  #cppbuild
 
 all: $(BINS)
 
