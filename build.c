@@ -342,6 +342,17 @@ int get_first_arg(char *arg){
 
 int main(int argc, char** argv){
 
+
+
+
+if(argv[1] == NULL){
+     usage(argv[0]);
+     exit(1);
+  }
+
+
+
+
   int new_argv1 = strcmp(argv[1], "--new");
   int run_argv1 = strcmp(argv[1], "--run");
   
