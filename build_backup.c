@@ -11,10 +11,6 @@
 #include <strings.h>
 
 
-#define C_true 0
-#define Cpp_true 1
-#define dbg_flag 1
-
 static void usage(char * prog_name){
     fprintf(stderr, " <usage> : %s   <Options>  <flags> \n\n",prog_name);
     Println("Options:");
@@ -38,7 +34,7 @@ static void copy_files_obj(char* prog_name,int flag){
     file Lh,fh,ff,fL;
     const String pc = StringBuild(prog_name);
     
-    if(flag == C_true){
+    if(flag == 0){
      Lh = read_file_to_string("/home/amr/AM/LibStr/c/LibStr.o");
      fh = read_file_to_string("/home/amr/AM/LibStr/c/file_handle.o");
     
@@ -54,7 +50,7 @@ static void copy_files_obj(char* prog_name,int flag){
     fwrite(Lh.buf.str, 1, Lh.buf.length-1, fL.ptr);
     fwrite(fh.buf.str, 1, fh.buf.length-1, ff.ptr);
 
-    }else if (flag == Cpp_true){
+    }else if (flag == 1){
      Lh = read_file_to_string("/home/amr/AM/LibStr/cpp/LibStr.o");
      fh = read_file_to_string("/home/amr/AM/LibStr/cpp/file_handle.o");
     
@@ -75,6 +71,7 @@ static void copy_files_obj(char* prog_name,int flag){
 
     }
 
+    
 
     close_file(ff);
     close_file(fL);
@@ -157,7 +154,7 @@ static void prep_mkfile(char *prog_name,int comp_iler,int debug_flag){
     String mf =  StringBuild("");
 
 
-    if(comp_iler == C_true)
+    if(comp_iler == 0)
     {
         if(debug_flag){
           CFLAGS = StringBuild("CFLAGS = -Wall -Wextra -pedantic -O2 -g \n");
@@ -254,19 +251,19 @@ static void prep_src(char *prog_name, int flag){
     Str_cat_m(&src,prog_name);
     String head = Str_cat(pname,"/src/");
     Str_cat_m(&head,prog_name);
-    if(flag == C_true){
+    if(flag == 0){
     Str_cat_m(&src,".c");
-    }else if(flag == Cpp_true){
+    }else if(flag == 1){
     Str_cat_m(&src,".cpp");
     }
     
     Str_cat_m(&head,".h");
     String src_cnt;
-    if(flag == C_true){
+    if(flag == 0){
      src_cnt = StringBuild("#include \"/home/amr/AM/LibStr/c/LibStr.h\"\
 \n#include \"/home/amr/AM/LibStr/c/file_handle.h\"\
 \n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main(){\n\tprintf(\"Hello,World!\\n\");\n}");
-    }else if(flag == Cpp_true){
+    }else if(flag == 1){
      src_cnt = StringBuild("#include \"/home/amr/AM/LibStr/cpp/LibStr.hpp\"\
 \n#include \"/home/amr/AM/LibStr/cpp/file_handle.h\"\
 \n#include <stdio.h>\n#include <stdlib.h>\n#include <string>\n\nint main(){\n\tprintf(\"Hello,World!\\n\");\n}");
@@ -345,68 +342,97 @@ int get_first_arg(char *arg){
 
 int main(int argc, char** argv){
 
- if(argv[1] == NULL){
+if(argv[1] == NULL){
      usage(argv[0]);
      exit(1);
   }
 
- if(argc < 2){
+
+
+
+  int new_argv1 = strcmp(argv[1], "--new");
+  int run_argv1 = strcmp(argv[1], "--run");
+  
+ int ftype_c   ;
+ int ftype_cpp ;
+    
+ int debug_flag ;
+
+ if(argv[3] == NULL)
+    {   ftype_c =1;
+        ftype_cpp=0;
+    }else {
+       ftype_c   = strcmp(argv[3], "--c");
+       ftype_cpp = strcmp(argv[3], "--cpp");
+    }
+
+    if(argv[4] == NULL)
+    {
+        debug_flag =1;
+    }else {
+    
+    debug_flag = strcmp(argv[4], "-debug");
+
+    }
+
+
+
+    if(argc < 2){
         usage(argv[0]);
         exit(EXIT_FAILURE);
     }
-
-
-  
- int ftype =0;
-    
- int debug_flag =0; 
+ 
+    if((new_argv1 != 0 ) && (run_argv1 !=0)){
+        usage(argv[0]);
+        exit(EXIT_FAILURE);
+        
+    } 
 
    
-        String prog_name;
-        String bin ;
-        String bin_path ;   // create <prog_name>/bin/<prog_name(executable)>
-        String runner;
-
-        int nw =0;
+    const String prog_name  = StringBuild(argv[2]);
+    const String bin = StringBuild("/bin/");
+    const String bin_path = Str_cat(bin, prog_name.str);   // create <prog_name>/bin/<prog_name(executable)>
+    const String runner = Str_cat (prog_name,bin_path.str);
     
-    for(int i=1; i < argc;i++){
-        if(strcmp(argv[i],"--new") == 0){
-           nw=1;
-           prog_name = StringBuild(argv[i+1]);     
-           bin = StringBuild("/bin/");
-           bin_path = Str_cat(bin, prog_name.str);   // create <prog_name>/bin/<prog_name(executable)>
-           runner = Str_cat (prog_name,bin_path.str);
-        }else if(strcmp(argv[i], "-c") == 0){
-                ftype = 0;
-        }else if(strcmp(argv[i], "-cpp")  == 0){
-                ftype = 1 ;
-        }else if(strcmp(argv[i], "-d") == 0){
-            debug_flag = 1;
-        }else if(strcmp(argv[i], "--run") == 0){
-            if(argv[i+1] == NULL){
-                def_ans();
-                usage(argv[0]);
-                exit(0);
-            }
-            
-            prog_name = StringBuild(argv[i+1]);
-            bin = StringBuild("/bin/");
-            bin_path = Str_cat(bin, prog_name.str);   // create <prog_name>/bin/<prog_name(executable)>
-            runner = Str_cat (prog_name,bin_path.str);
-
-            run_proj(runner.str);
+    if(new_argv1 == 0){
+        
+        mkproj(argv[2]);
+        if(ftype_c ==0){
+            copy_files_obj(argv[2],0);
+            prep_src(argv[2], 0);
+        }else {
+            copy_files_obj(argv[2],1);
+            prep_src(argv[2], 1);
         }
 
-    }
+         if(ftype_c == 0 ){
+            if(debug_flag == 0){
+                    prep_mkfile(argv[2],0,1);
+            }else{
+                    prep_mkfile(argv[2],0,0);
+            }
+
+        
+        }else if(ftype_cpp == 0 ){
+            if(debug_flag == 0){
+                    prep_mkfile(argv[2],1,1);
+            }else{
+                    prep_mkfile(argv[2],1,0);
+            }
+        }else {
+            def_ans();
+            exit(-1);
+        }
+
+    } else if (run_argv1 == 0) {
     
-    if(nw){
-     mkproj(prog_name.str);
+        run_proj(runner.str);
+    
+    }else {
+        def_ans();
     }
-    copy_files_obj(prog_name.str,ftype);
-    prep_src(prog_name.str, ftype);
-    prep_mkfile(prog_name.str,ftype,debug_flag);
-
-
+     
+    Str_free_all();
 
 
     return 0;

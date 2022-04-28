@@ -1,9 +1,6 @@
 #ifndef __STR_A_LIB__
 #define __STR_A_LIB__
 #include <stddef.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 typedef unsigned long int _pos;
 typedef struct String String;

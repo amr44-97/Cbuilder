@@ -1,8 +1,6 @@
 #ifndef F_HANDLER
 #define F_HANDLER 
 #include<stdio.h>
-#include<stdlib.h>
-#include<assert.h>
 #include "LibStr.h"
 
 typedef struct file{
